@@ -17,13 +17,13 @@ with open('2017.csv', newline='') as csvfile:
     dicTeamID['League Average'] = 31
 print(dicTeamID)
 #######################################################
-######## merging tables a and b and adding key colomn #
+### merging tables a and b and adding data to table ###
 for j in range(0, 18):
     fileName1 = str(2000 + j) + ".csv"
     fileName2 = str(2000 + j) + "B" + ".csv"
-    ######################################################
-    ### creating a key for each team per season ##########
-    ### accourding to prime dictionary (2017) ############
+######################################################
+### creating a key for each team per season ##########
+### accourding to prime dictionary (2017) ############
     teams = []
     with open(fileName1, newline='') as csvfile:
         dataTable1 = csv.reader(csvfile, delimiter=',', quotechar='|')
@@ -46,18 +46,22 @@ for j in range(0, 18):
                     teams.append((row[1], dicTeamID['New Orleans Pelicans']))
                 if row[1] == 'New Orleans/Oklahoma City Hornets':
                     teams.append((row[1], dicTeamID['New Orleans Pelicans']))
-    ######################################################
-    ######## merging tables a and b and adding key to ####
-    ######## TeamID colomn and deleting access colomns####
+######################################################
+######## merging tables a and b and adding key to ####
+######## TeamID colomn and adding andd eleting colomns
     file1 = pd.read_csv(fileName1)
     file1.set_index('Team')
     file2 = pd.read_csv(fileName2)
     file2.set_index('Team')
     x = file1.merge(file2, on='Team', how='outer')
-    x['TeamID'] = 100
     x['Season'] = 2000+j
-
-    x.to_csv(fileName1, index = False)
+    del x['Rk_y']
+    x = x.rename(columns={'Rk_x':'Rk'})
+    print(len(teams), teams, 2000+j)
+    '''for franchise in teams:
+        val = franchise[1]
+        x.set_value(franchise[0], 'TeamID', val)
+    x.to_csv(fileName1, index = False)'''
 
 
 
