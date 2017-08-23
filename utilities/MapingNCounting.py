@@ -10,6 +10,9 @@ for i in range (0,18):
         dataTable = csv.reader(csvfile, delimiter=',', quotechar='|')
         for row in dataTable:
             if row[0] == 'Rk' or row[1] == 'League Average':
+                if row[0] == 'Rk':
+                    if row[26] != 'Standings_Bucket ':
+                        print(2000 + i, row[26])
                 continue
             conAdd = conAdd + int(row[27])
             finAdd = finAdd + int(row[25])

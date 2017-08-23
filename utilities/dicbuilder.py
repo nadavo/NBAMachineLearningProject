@@ -46,6 +46,8 @@ for j in range(0, 18):
                     teams.append((row[1], dicTeamID['New Orleans Pelicans']))
                 if row[1] == 'New Orleans/Oklahoma City Hornets':
                     teams.append((row[1], dicTeamID['New Orleans Pelicans']))
+                if row[1] == 'Charlotte Bobcats':
+                    teams.append((row[1], dicTeamID['Charlotte Hornets']))
 ######################################################
 ######## merging tables a and b and adding key to ####
 ######## TeamID colomn and adding andd eleting colomns
@@ -56,12 +58,17 @@ for j in range(0, 18):
     x = file1.merge(file2, on='Team', how='outer')
     x['Season'] = 2000+j
     del x['Rk_y']
-    x = x.rename(columns={'Rk_x':'Rk'})
-    print(len(teams), teams, 2000+j)
-    '''for franchise in teams:
+    del x['Rk_x']
+    x['TeamID'] = x['Team']
+    ###print(len(teams), teams, 2000+j)
+    for franchise in teams:
         val = franchise[1]
-        x.set_value(franchise[0], 'TeamID', val)
-    x.to_csv(fileName1, index = False)'''
+        x['TeamID'].replace(franchise[0],val,inplace=True)
+    x['W/L'] = x['W']/x['L']
+    x['Standings_Bucket'] = x['Standings_Bucket ']
+    del x['Standings_Bucket ']
+    x = x[['Season','TeamID','Team','E/W','Conference Finalist','G','W','L','W/L','MP','FG','FGA','FG%','3P','3PA','3P%','2P','2PA','2P%','FT','FTA','FT%','ORB','DRB','TRB','AST','STL','BLK','TOV','PF','PTS','Age','PW','PL','MOV','SOS','SRS','ORtg','DRtg','Pace','FTr','3PAr','TS%','eFG%','TOV%','ORB%','FT/FGA','eFG%','TOV%','DRB%','FT/FGA','Arena','Attendance','Standings_Bucket']]
+    x.to_csv(fileName1, index = False)
 
 
 
