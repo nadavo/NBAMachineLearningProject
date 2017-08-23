@@ -32,7 +32,8 @@ for j in range(0, 18):
                 continue
             if row[1] in dicTeamID.keys():
                 teams.append((row[1], dicTeamID[row[1]]))
-                if 2000 + j < 2003:
+                if 2000 + j < 2003 and row[1] == 'Charlotte Hornets':
+                    teams.remove((row[1], dicTeamID[row[1]]))
                     teams.append(('Charlotte Hornets', dicTeamID['New Orleans Pelicans']))
             else:
                 if row[1] == 'Seattle SuperSonics':
@@ -47,15 +48,18 @@ for j in range(0, 18):
                     teams.append((row[1], dicTeamID['New Orleans Pelicans']))
     ######################################################
     ######## merging tables a and b and adding key to ####
-    ######## TeamID colomn ###############################
+    ######## TeamID colomn and deleting access colomns####
     file1 = pd.read_csv(fileName1)
+    file1.set_index('Team')
     file2 = pd.read_csv(fileName2)
-    x = file1.merge(file2, on='Team')
+    file2.set_index('Team')
+    x = file1.merge(file2, on='Team', how='outer')
     x['TeamID'] = 100
-    for row1 in x:
-        for franchise in teams:
-            if row1[1] == franchise[0]:
-                row1[53] = franchise[1]
+    x['Season'] = 2000+j
+
     x.to_csv(fileName1, index = False)
+
+
+
 
 
