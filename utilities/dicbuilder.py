@@ -2,6 +2,7 @@ import csv
 import pandas as pd
 #####################################################
 ### creating a dictionary for each team #############
+dicTeamID = {}
 with open('2017.csv', newline='') as csvfile:
     dataTable = csv.reader(csvfile, delimiter=',', quotechar='|')
     dicTeams = []
@@ -9,12 +10,11 @@ with open('2017.csv', newline='') as csvfile:
         if row[0] == 'Rk':
             continue
         dicTeams.append(row[1])
-    dicTeamID = []
     for i in range(1, 31):
         team = (sorted(dicTeams)).pop(0)
-        dicTeamID.append((team, i))
+        dicTeamID[team] = i
         dicTeams.remove(team)
-    dicTeamID.append(('League Average', 31))
+    dicTeamID['League Average'] = 31
 print(dicTeamID)
 #######################################################
 ######## merging tables a and b and adding key colomn #
@@ -31,16 +31,18 @@ for j in range(0, 18):
             if row[0] == 'Rk':
                 continue
             teams.append(row[1])
-        TeamID = []
-    ######################################################
-    ###
     ######################################################
     ######## merging tables a and b and adding key to ####
     ######## TeamID colomn ###############################
     file1 = pd.read_csv(fileName1)
     file2 = pd.read_csv(fileName2)
     x = file1.merge(file2, on='Team')
-    x['TeamID']=5
+    x['TeamID'] = 100
+    for row1 in x:
+        if row1[0] == 'Rk':
+            continue
+        if row1[1] in dicTeamID.keys():
+            row1[53] = dicTeamID[row1[1]]
     x.to_csv(fileName1, index = False)
 
 
