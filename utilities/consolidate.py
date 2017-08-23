@@ -5,6 +5,7 @@ output_filename = sys.argv[2]
 num_seasons = int(sys.argv[3])
 
 output_lines = list()
+averages = list()
 header = str()
 
 for i in range(num_seasons):
@@ -13,10 +14,19 @@ for i in range(num_seasons):
         for line in f:
             if 'TeamID' in line:
                 header = line
-                continue
-            output_lines.append(line)
+            elif 'League Average' in line:
+                averages.append(line)
+            else:
+                output_lines.append(line)
+
+with open(output_filename+".csv", 'w') as f:
+        f.write(header)
+        for line in output_lines:
+            f.write(line)
+
+output_filename = output_filename + "_averages.csv"
 
 with open(output_filename, 'w') as f:
         f.write(header)
-        for line in output_lines:
+        for line in averages:
             f.write(line)
