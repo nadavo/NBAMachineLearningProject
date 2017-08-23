@@ -7,8 +7,8 @@ for i in range (0,18):
     oneCount = 0
     twoCount = 0
     with open(fileName, newline='') as csvfile:
-        dateTable = csv.reader(csvfile, delimiter=',', quotechar='|')
-        for row in dateTable:
+        dataTable = csv.reader(csvfile, delimiter=',', quotechar='|')
+        for row in dataTable:
             if row[0] == 'Rk' or row[1] == 'League Average':
                 continue
             conAdd = conAdd + int(row[27])
