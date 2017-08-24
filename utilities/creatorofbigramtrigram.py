@@ -34,36 +34,40 @@ for q in range (0,2):
     for i in [0,1,2]:
         for j in [0,1,2]:
             headlines1.append((int(i),int(j)))
+            file[str((i,j))] = 0
     for i in [0,1,2]:
         for j in [0,1,2]:
             for k in [0,1,2]:
                 headlines2.append((i,j,k))
+                file[str((i,j,k))] = 0
 ######################################################################
 ### adding the correct value to the bigram and trigram and E/W #######
-    for i in range(0, len(headlines1)):
-        for j, row in x.iterrows():
+    for j, row in x.iterrows():
+        if row['E/W'] != ewdict.get(row['TeamID']):
+            print(row['Season'],row['Team'])
+            #file.set_value(j, 'E/W', ewdict.get(row['TeamID']))
+        for i in range(0, len(headlines1)):
             team = granddict[row['TeamID']]
-            #row['E/W'] = ewdict[str(row['TeamID'])]
             val = 0
-            if (q == 0 and row['Season'] != 2006) or (q == 1 and row['Season'] != 2000):
+            if (q == 0 and row['Season'] > 2006) or (q == 1 and row['Season'] > 2000):
                 left = int(float(team[str(row['Season'])]))
-                right = int(float(team[str(row['Season']-1)]))
+                right = int(float(team.get(str(row['Season']-1),2)))
                 tupp = (right, left)
                 if tupp == (headlines1[i]):
                     val = 1
-            file[str(headlines1[i])] = val
-    '''for i in range(0, len(headlines2)):
+            file.set_value(j, str(headlines1[i]), val)
+    for i in range(0, len(headlines2)):
         for j, row in x.iterrows():
             team = granddict[row['TeamID']]
             val = 0
-            if (q == 0 and row['Season'] != 2007) or (q == 1 and row['Season'] != 2001):
+            if (q == 0 and row['Season'] > 2007) or (q == 1 and row['Season'] > 2001):
                 left = int(float(team[str(row['Season'])]))
-                middle = int(float(team[str(row['Season']-1)]))
-                right = int(float(team[str(row['Season']-2)]))
+                middle = int(float(team.get(str(row['Season']-1),2)))
+                right = int(float(team.get(str(row['Season']-2),2)))
                 tupp = (right, middle, left)
                 if tupp == (headlines2[i]):
                     val = 1
-            file[str(headlines2[i])] = val'''
+            file.set_value(j, str(headlines2[i]), val)
     file.to_csv(savedata[q], index=False)
 
 
