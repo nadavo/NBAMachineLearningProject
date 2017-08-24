@@ -1,7 +1,7 @@
 import csv
 import pandas as pd
-datafiles = ['12seasons.csv', 'allseasons.csv']
-savedata = ['test1.csv','test2.csv']
+datafiles = ['12unstructured.csv', '18unstructured.csv']
+savedata = ['12structured.csv','18structured.csv']
 ewdict = {1:0, 2:0, 3:0, 4:0, 5:0, 6:0, 7:1, 8:1, 9:0, 10:1, 11:1, 12:0, 13:1, 14:1, 15:1, 16:0, 17:0, 18:1, 19:1, 20:0, 21:1, 22:0, 23:0, 24:1, 25:1, 26:1, 27:1, 28:0, 29:1, 30:0}
 
 for q in range (0,2):
@@ -23,10 +23,13 @@ for q in range (0,2):
         for team, year, position in values:
             granddict.setdefault(team, {})[year] = position
         print(granddict)
+
 #####################################################################
 ### editing the files, adding bigrams and trigrams and E/W fix ######
     x = pd.read_csv(datafiles[q])
     file = x
+    labels = x['Standings_Bucket']
+    del x['Standings_Bucket']
     #################################
     ### creating the headilnes ######
     headlines1 = []
@@ -68,6 +71,7 @@ for q in range (0,2):
                 if tupp == (headlines2[i]):
                     val = 1
             file.set_value(j, str(headlines2[i]), val)
+    file['Standings_Bucket'] = labels
     file.to_csv(savedata[q], index=False)
 
 
