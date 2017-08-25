@@ -22,6 +22,10 @@ for i in range (0,18):
                 oneCount = oneCount + 1
             else:
                 twoCount = twoCount + 1
+#############################################################################
+### miami entered the league in 1989 (25 teams) #############################
+### minnesota and orlando entered the league in 1990 (27 teams) #############
+### vancouver and toronto entered the league in 1996 (29 teams) #############
         if i+2000 < 2005:
             if conAdd != 14 or finAdd != 4 or zeroCount != 8 or oneCount != 8 or twoCount != 13:
                 print(fileName, conAdd, finAdd, zeroCount, oneCount, twoCount)
