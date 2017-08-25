@@ -23,7 +23,8 @@ for i in range (0,18):
             else:
                 twoCount = twoCount + 1
 #############################################################################
-### miami entered the league in 1989 (25 teams) #############################
+### until 1989 the league had 23 teams ######################################
+### miami and charlotte(19) entered the league in 1989 (25 teams) ###########
 ### minnesota and orlando entered the league in 1990 (27 teams) #############
 ### vancouver and toronto entered the league in 1996 (29 teams) #############
         if i+2000 < 2005:
