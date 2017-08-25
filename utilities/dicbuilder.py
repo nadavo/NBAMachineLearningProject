@@ -48,6 +48,7 @@ for j in range(0, 18):
                     teams.append((row[1], dicTeamID['New Orleans Pelicans']))
                 if row[1] == 'Charlotte Bobcats':
                     teams.append((row[1], dicTeamID['Charlotte Hornets']))
+
 ######################################################
 ######## merging tables a and b and adding key to ####
 ######## TeamID colomn and adding andd eleting colomns
