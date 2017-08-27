@@ -18,9 +18,9 @@ with open('2017.csv', newline='') as csvfile:
 print(dicTeamID)
 #######################################################
 ### merging tables a and b and adding data to table ###
-for j in range(0, 18):
-    fileName1 = str(2000 + j) + ".csv"
-    fileName2 = str(2000 + j) + "B" + ".csv"
+for j in range(0, 31):
+    fileName1 = str(1987 + j) + ".csv"
+    fileName2 = str(1987 + j) + "B" + ".csv"
 ######################################################
 ### creating a key for each team per season ##########
 ### accourding to prime dictionary (2017) ############
@@ -58,11 +58,10 @@ for j in range(0, 18):
     file2 = pd.read_csv(fileName2)
     file2.set_index('Team')
     x = file1.merge(file2, on='Team', how='outer')
-    x['Season'] = 2000+j
+    x['Season'] = 1987+j
     del x['Rk_y']
     del x['Rk_x']
     x['TeamID'] = x['Team']
-    ###print(len(teams), teams, 2000+j)
     for franchise in teams:
         val = franchise[1]
         x['TeamID'].replace(franchise[0],val,inplace=True)
