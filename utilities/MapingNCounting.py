@@ -1,6 +1,6 @@
 import csv
-for i in range (0,18):
-    fileName = str(2000+i)+".csv"
+for i in range (0,31):
+    fileName = str(1987+i)+".csv"
     conAdd = 0
     finAdd = 0
     zeroCount = 0
@@ -23,11 +23,19 @@ for i in range (0,18):
             else:
                 twoCount = twoCount + 1
 #############################################################################
-### until 1989 the league had 23 teams ######################################
-### miami and charlotte(19) entered the league in 1989 (25 teams) ###########
-### minnesota and orlando entered the league in 1990 (27 teams) #############
-### vancouver and toronto entered the league in 1996 (29 teams) #############
-        if i+2000 < 2005:
+        if i+1987 < 1989:
+            if conAdd != 12 or finAdd != 4 or zeroCount != 8 or oneCount != 8 or twoCount != 7:
+                print(fileName, conAdd, finAdd, zeroCount, oneCount, twoCount)
+        elif i+1989 < 1990:
+            if conAdd != 13 or finAdd != 4 or zeroCount != 8 or oneCount != 8 or twoCount != 9:
+                print(fileName, conAdd, finAdd, zeroCount, oneCount, twoCount)
+        elif i+1990 < 1991:
+            if conAdd != 14 or finAdd != 4 or zeroCount != 8 or oneCount != 8 or twoCount != 11:
+                print(fileName, conAdd, finAdd, zeroCount, oneCount, twoCount)
+        elif i+1991 < 1995:
+            if conAdd != 13 or finAdd != 4 or zeroCount != 8 or oneCount != 8 or twoCount != 11:
+                print(fileName, conAdd, finAdd, zeroCount, oneCount, twoCount)
+        elif i+1996 < 2005:
             if conAdd != 14 or finAdd != 4 or zeroCount != 8 or oneCount != 8 or twoCount != 13:
                 print(fileName, conAdd, finAdd, zeroCount, oneCount, twoCount)
         else:
