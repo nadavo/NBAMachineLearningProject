@@ -1,7 +1,7 @@
 import csv
 import pandas as pd
-datafiles = ['12unstructured.csv', '18unstructured.csv']
-savedata = ['12structured.csv','18structured.csv']
+datafiles = ['24unstructured.csv', '31unstructured.csv']
+savedata = ['24structured.csv','31structured.csv']
 ewdict = {1:0, 2:0, 3:0, 4:0, 5:0, 6:0, 7:1, 8:1, 9:0, 10:1, 11:1, 12:0, 13:1, 14:1, 15:1, 16:0, 17:0, 18:1, 19:1, 20:0, 21:1, 22:0, 23:0, 24:1, 25:1, 26:1, 27:1, 28:0, 29:1, 30:0}
 
 for q in range (0,2):
@@ -13,7 +13,7 @@ for q in range (0,2):
         values = []
         teams = list(range(1, 31))
         if q == 1:
-            years = list(range(2017, 1999, -1))
+            years = list(range(2017, 1986, -1))
         for row in data:
             for team in teams:
                 if row[1] == 'TeamID':
@@ -48,7 +48,6 @@ for q in range (0,2):
     for j, row in x.iterrows():
         if row['E/W'] != ewdict.get(row['TeamID']):
             print(row['Season'],row['Team'])
-            #file.set_value(j, 'E/W', ewdict.get(row['TeamID']))
         for i in range(0, len(headlines1)):
             team = granddict[row['TeamID']]
             val = 0

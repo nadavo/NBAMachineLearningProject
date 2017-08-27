@@ -9,7 +9,7 @@ averages = list()
 header = str()
 
 for i in range(num_seasons):
-    filename = input_dir + "/" + str(2017-i) + ".csv"
+    filename = input_dir + "\\" + str(2017-i) + ".csv"
     with open(filename, 'r') as f:
         for line in f:
             if 'TeamID' in line:
