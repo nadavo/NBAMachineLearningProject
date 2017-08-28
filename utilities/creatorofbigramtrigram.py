@@ -1,10 +1,10 @@
 import csv
 import pandas as pd
-datafiles = ['24unstructured.csv', '31unstructured.csv']
-savedata = ['24structured.csv','31structured.csv']
+datafiles = ['18unstructured.csv','24unstructured.csv', '31unstructured.csv']
+savedata = ['18structured.csv','24structured.csv','31structured.csv']
 ewdict = {1:0, 2:0, 3:0, 4:0, 5:0, 6:0, 7:1, 8:1, 9:0, 10:1, 11:1, 12:0, 13:1, 14:1, 15:1, 16:0, 17:0, 18:1, 19:1, 20:0, 21:1, 22:0, 23:0, 24:1, 25:1, 26:1, 27:1, 28:0, 29:1, 30:0}
 
-for q in range (0,2):
+for q in range (0,3):
     granddict = {}
 #####################################################################
 ### creating the dictionary for each team ###########################
@@ -51,7 +51,7 @@ for q in range (0,2):
         for i in range(0, len(headlines1)):
             team = granddict[row['TeamID']]
             val = 0
-            if (q == 0 and row['Season'] > 2006) or (q == 1 and row['Season'] > 2000):
+            if (q == 0 and row['Season'] > 2000) or (q == 1 and row['Season'] > 1994) or (q == 2 and row['Season'] > 1987):
                 left = int(float(team[str(row['Season'])]))
                 right = int(float(team.get(str(row['Season']-1),2)))
                 tupp = (right, left)
@@ -62,7 +62,7 @@ for q in range (0,2):
         for j, row in x.iterrows():
             team = granddict[row['TeamID']]
             val = 0
-            if (q == 0 and row['Season'] > 2007) or (q == 1 and row['Season'] > 2001):
+            if (q == 0 and row['Season'] > 2001) or (q == 1 and row['Season'] > 1995) or (q == 2 and row['Season'] > 1988):
                 left = int(float(team[str(row['Season'])]))
                 middle = int(float(team.get(str(row['Season']-1),2)))
                 right = int(float(team.get(str(row['Season']-2),2)))
