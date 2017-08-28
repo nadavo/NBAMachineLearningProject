@@ -7,17 +7,22 @@ import numpy as np
 from time import time
 import sys
 
+#0.82
+columns_original = ['TeamID','E/W','Conference Finalist','W/L','FG','FGA','3P','3PA','FT','FTA','ORB','DRB','AST','STL','BLK','TOV','PF','PTS','Pace','Attendance']
+#0.79
+columns_reduced = ['TeamID', 'E/W', 'Conference Finalist', 'FG', 'FGA', '3P', '3PA', 'FT', 'FTA', 'ORB', 'DRB', 'AST', 'STL', 'BLK', 'TOV', 'PF', 'PTS', 'Pace', 'Attendance', 'Standings_Bucket']
+
+columns = columns_original
 
 def createMatrix(datafile):
-    columns = ['Season','TeamID','E/W','Conference Finalist','W/L','FG','FGA','3P','3PA','FT','FTA','ORB','DRB','AST','STL','BLK','TOV','PF','PTS','Age','MOV','Pace','eFG%','Attendance','Standings_Bucket']
     df = pd.read_csv(datafile, header=0, sep=',', usecols=columns)
     df.to_csv('reduced.csv', index = False)
     X, Y = df.iloc[:,:-1], df.iloc[:,-1]
     print("Number of samples: " + str(len(X)))
     print("Number of labels: " + str(len(Y)))
-    print("Values distribution in dataset per feature:")
-    for feature in columns:
-        print(feature,df[feature].value_counts(normalize=True, sort=False, dropna=False))
+    # print("Values distribution in dataset per feature:")
+    # for feature in columns:
+    #     print(feature,df[feature].value_counts(normalize=True, sort=False, dropna=False))
     return X, Y
 
 
@@ -33,12 +38,20 @@ def evaluateModel(clf, data, labels, cv_flag=False):
         predictions = clf.predict(data)
         prediction_end = time()
         print("Prediction took " + str((prediction_end - prediction_start) / 60) + " minutes to complete\n")
+    features = columns[:-1]
+    features_scores = list(clf.feature_importances_)
+    feature_dict = dict()
+    for feature in features:
+        feature_dict[feature] = features_scores.pop(0)
     error = 1.0 - float(accuracy_score(labels, predictions))
     print("Accuracy: " + str(accuracy_score(labels, predictions)))
     print("Confusion Matrix:")
     print(confusion_matrix(labels, predictions))
     print("Classification Report:")
     print(classification_report(labels, predictions))
+    print("Feature Importance:")
+    for feature in sorted(feature_dict, key=feature_dict.get, reverse=True):
+        print(feature,feature_dict[feature])
     return error
 
 
@@ -102,7 +115,7 @@ def main():
     print(inputfile)
     data, labels = createMatrix(inputfile)
     errors = createModel(data, labels, False)
-    print("Train Error: " + str(errors[0]))
+    print("\nTrain Error: " + str(errors[0]))
     if len(errors) > 1:
         print("Test Error: " + str(errors[1]))
     end = time()
