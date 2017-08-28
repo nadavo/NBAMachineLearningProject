@@ -8,7 +8,7 @@ from time import time
 import sys
 
 def createMatrix(datafile):
-    columns = ['Season','TeamID','E/W','Conference Finalist','W/L','FG','FGA','3P','3PA','FT','FTA','ORB','DRB','AST','STL','BLK','TOV','PF','PTS','Age','MOV','Pace','eFG%','Attendance','Standings_Bucket']
+    columns = ['TeamID','E/W','Conference Finalist','W/L','FG','FGA','3P','3PA','FT','FTA','ORB','DRB','AST','STL','BLK','TOV','PF','PTS','Pace','Attendance','Standings_Bucket']
     df = pd.read_csv(datafile, header=0, sep=',', usecols=columns)
     df.to_csv('reduced.csv', index = False)
     X, Y = df.iloc[:,:-1], df.iloc[:,-1]
