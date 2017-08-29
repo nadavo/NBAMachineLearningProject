@@ -25,8 +25,8 @@ for q in range (0,3):
         for team, year, position in values:
             granddict.setdefault(team, {})[year] = position
             uberdict.setdefault(team, {})[str(int(year)-1)] = position
-        print(granddict[4])
-        print(uberdict[4])
+        #print(granddict[4])
+        #print(uberdict[4])
 #####################################################################
 ### editing the files, adding bigrams and trigrams dictionaries and E/W fix ######
     x = pd.read_csv(datafiles[q])
@@ -76,12 +76,12 @@ for q in range (0,3):
     file['Standings_Bucket'] = labels
     file = file.sort_values(by='Season')
     for j, row in file.iterrows():
-        # if row['Season'] == 2017:
-        #     continue
         # if row['TeamID'] == 4 and row['Season'] > 2001 and row['Season'] < 2004:
         #     continue
         team = uberdict[row['TeamID']]
         year = team.get(str(row['Season']), 2)
+        if row['Season'] == 2017:
+            year = -1
         file.set_value(j, 'Standings_Bucket_Next', year)
     file = file.sort_values(by=['TeamID','Season'])
     file.to_csv(savedata[q], index=False)
