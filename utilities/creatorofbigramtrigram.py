@@ -81,9 +81,10 @@ for q in range (0,3):
         team = uberdict[row['TeamID']]
         year = team.get(str(row['Season']), 2)
         if row['Season'] == 2017:
-            year = -1
+            year = row['Standings_Bucket']
         file.set_value(j, 'Standings_Bucket_Next', year)
     file = file.sort_values(by=['TeamID','Season'])
+    del file['Arena']
     file.to_csv(savedata[q], index=False)
 
 
