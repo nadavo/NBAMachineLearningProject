@@ -75,12 +75,12 @@ def main():
     print(sys.argv[0],inputfile)
     df = pd.read_csv(inputfile, header=0, sep=',', usecols=columns)
     df.to_csv('reduced.csv', index = False)
-    teams = df['Team'].unique()
+    teamIDs = df['TeamID'].unique()
     accuracy = dict()
-    for team in teams:
-        team_name = str(team)
+    for team in teamIDs:
+        df_team = df[df['TeamID']==team]
+        team_name = str(df_team['Team'].unique()[0])
         accuracy[team_name] = dict()
-        df_team = df[df['Team']==team]
         print("\n"+team_name+"\n")
         X_train, Y_train, X_test, Y_test = createMatrix(datafile=df_team,seq_length=3,test_size=2)
         model = createModel(X_train, Y_train)
