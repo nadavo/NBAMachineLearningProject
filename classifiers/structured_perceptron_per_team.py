@@ -25,7 +25,7 @@ def createMatrix(datafile,seq_length,test_size):
     num_seasons = df_team['Season'].nunique()
     for i in range(0,num_seasons,seq_length):
         df_season = df_team[(df_team['Season']>=int(first_season+i))&(df_team['Season']<int(first_season+i+seq_length))]
-        X, Y = df_season.iloc[:,4:-1].apply(pd.to_numeric), pd.to_numeric(df_season.iloc[:,-1],downcast='unsigned')
+        X, Y = df_season.iloc[:,4:-1].apply(pd.to_numeric), pd.to_numeric(df_season.iloc[:,-1],downcast='integer')
         X_chain = X.as_matrix()
         X_train.append(X_chain)
         Y_chain = Y.as_matrix()
@@ -58,10 +58,9 @@ def evaluateModel(clf, data, labels, test_flag=False):
     # print(classification_report(labels, predictions))
     return score
 
-
-def createModel(data, labels):
-    model = ChainCRF(n_states=3,n_features=int(len(columns)-5),directed=True)
-    clf = StructuredPerceptron(model=model,max_iter=500,verbose=False,batch=True,average=True)
+def createModel(data, labels, num_classes=3):
+    model = ChainCRF(n_states=num_classes,n_features=int(len(columns)-5),directed=True)
+    clf = StructuredPerceptron(model=model,max_iter=10,verbose=False,batch=True,average=True)
     print("Structured Perceptron + Chain CRF")
     train_start = time()
     clf.fit(X=data, Y=labels)
@@ -76,23 +75,37 @@ def main():
     df = pd.read_csv(inputfile, header=0, sep=',', usecols=columns)
     df.to_csv('reduced.csv', index = False)
     teamIDs = df['TeamID'].unique()
+    models = dict()
     accuracy = dict()
     for team in teamIDs:
         df_team = df[df['TeamID']==team]
-        team_name = str(df_team['Team'].unique()[0])
-        accuracy[team_name] = dict()
+        num_classes = df_team['Standings_Bucket_Next'].nunique()
+        team_name = str(team) + " -> " + str(df_team['Team'].unique()[0])
         print("\n"+team_name+"\n")
         X_train, Y_train, X_test, Y_test = createMatrix(datafile=df_team,seq_length=3,test_size=2)
-        model = createModel(X_train, Y_train)
+        if team==19 or team==10 or team==13 or team==4 or team==7:
+            print(num_classes)
+            print(X_train)
+            print(Y_train)
+            print(X_test)
+            print(Y_test)
+        accuracy[team_name] = dict()
+        models[team_name] = createModel(X_train, Y_train, num_classes)
         print("\nTrain "+team_name+"\n")
-        accuracy[team_name]['Train'] = evaluateModel(model, X_train, Y_train)
+        accuracy[team_name]['Train'] = evaluateModel(models[team_name], X_train, Y_train)
         print("\nTest "+team_name+"\n")
-        accuracy[team_name]['Test'] = evaluateModel(model, X_test, Y_test, test_flag=True)
-    print("\nResults\n")
+        accuracy[team_name]['Test'] = evaluateModel(models[team_name], X_test, Y_test, test_flag=True)
+    avg_train = list()
+    avg_test = list()
+    print("\nAccuracy Results\n")
     for team in accuracy.keys():
         print("\n"+team)
+        avg_train.append(accuracy[team]['Train'])
+        avg_test.append(accuracy[team]['Test'])
         print("Train: ",accuracy[team]['Train'])
         print("Test: ",accuracy[team]['Test'])
+    print("\nAverage Train Accuracy: " + str(np.mean(avg_train)))
+    print("Average Test Accuracy: " + str(np.mean(avg_test)))
     end = time()
     print("\nProcess took " + str((end - start) / 60) + " minutes to complete")
 
