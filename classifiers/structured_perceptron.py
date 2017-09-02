@@ -1,100 +1,103 @@
-from sklearn.model_selection import train_test_split, learning_curve, KFold, cross_val_score, cross_val_predict
-from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
+from sklearn.metrics import accuracy_score, confusion_matrix, classification_report, make_scorer
 from pystruct.models import StructuredModel, GraphCRF, ChainCRF, MultiClassClf
 from pystruct.learners import StructuredPerceptron
 from pystruct.plot_learning import plot_learning as plt
 import pandas as pd
 import numpy as np
 from time import time
+from random import shuffle, sample
 import sys
 
 columns_original = ['Season','TeamID','E/W','Conference Finalist','W/L','FG','FGA','3P','3PA','FT','FTA','ORB','DRB','AST','STL','BLK','TOV','PF','PTS','Pace','Attendance', 'Standings_Bucket', "(0, 0)", "(0, 1)", "(0, 2)","(1, 0)","(1, 1)","(1, 2)","(2, 0)","(2, 1)","(2, 2)","(0, 0, 0)","(0, 0, 1)","(0, 0, 2)","(0, 1, 0)","(0, 1, 1)","(0, 1, 2)","(0, 2, 0)","(0, 2, 1)","(0, 2, 2)","(1, 0, 0)","(1, 0, 1)","(1, 0, 2)","(1, 1, 0)","(1, 1, 1)","(1, 1, 2)","(1, 2, 0)","(1, 2, 1)","(1, 2, 2)","(2, 0, 0)","(2, 0, 1)","(2, 0, 2)","(2, 1, 0)","(2, 1, 1)","(2, 1, 2)","(2, 2, 0)","(2, 2, 1)","(2, 2, 2)", 'Standings_Bucket_Next']
 
-#0.6 with 18 seasons
-columns_reduced = ['Season','TeamID', 'E/W', 'Conference Finalist', 'W/L', 'SRS', 'Standings_Bucket', 'Standings_Bucket_Next']
+#0.6 with 18 seasons regular chain
+columns_reduced = ['Season','TeamID', 'E/W', 'Conference Finalist', 'W/L', 'SRS', '2PA', '3PA', 'DRB', 'ORB', 'Standings_Bucket', 'Standings_Bucket_Next']
 
 columns = columns_reduced
 
-def createMatrix(datafile):
+def createMatrix(datafile,seq_length,test_size):
     df = pd.read_csv(datafile, header=0, sep=',', usecols=columns)
     df.to_csv('reduced.csv', index = False)
-    teamIDs = df['TeamID'].unique()
-    X_chained = list()
-    Y_chained = list()
-    for team in teamIDs:
-        df_team = df[(df['TeamID']==team)&(df['Season']>2009)]
-        X, Y = df_team.iloc[:,3:-1], pd.to_numeric(df_team.iloc[:,-1],downcast='unsigned')
-        X_chain = X.as_matrix()
-        X_chained.append(X_chain)
-        Y_chain = Y.as_matrix()
-        Y_chained.append(Y_chain)
-    print("Number of sample chains: " + str(len(X_chained)))
-    print("Number of label chains: " + str(len(Y_chained)))
-    return X_chained, Y_chained
+    teamIDs = list(df['TeamID'].unique())
+    shuffled_teamIDs = sample(teamIDs,len(teamIDs))
+    X_train = list()
+    Y_train = list()
+    X_test = list()
+    Y_test = list()
+    X_chained = X_train
+    Y_chained = Y_train
+    train_test = 0
+    for team in shuffled_teamIDs:
+        df_team = df[df['TeamID']==team]
+        first_season = int(df_team['Season'].min())
+        num_seasons = df_team['Season'].nunique()
+        if train_test>=int(len(shuffled_teamIDs)*(1-test_size)):
+            X_chained = X_test
+            Y_chained = Y_test
+        for i in range(0,num_seasons,seq_length):
+            df_season = df_team[(df_team['Season']>=int(first_season+i))&(df_team['Season']<int(first_season+i+seq_length))]
+            X, Y = df_season.iloc[:,3:-1].apply(pd.to_numeric), pd.to_numeric(df_season.iloc[:,-1],downcast='unsigned')
+            X_chain = X.as_matrix()
+            X_chained.append(X_chain)
+            Y_chain = Y.as_matrix()
+            Y_chained.append(Y_chain)
+        train_test += 1
+    print("Number of training sample chains: " + str(len(X_train)))
+    print("Number of training label chains: " + str(len(Y_train)))
+    print("Number of test sample chains: " + str(len(X_test)))
+    print("Number of test label chains: " + str(len(Y_test)))
+    return X_train, Y_train, X_test, Y_test
 
 
-def evaluateModel(clf, data, labels, cv_flag=False):
-    if cv_flag:
-        kfold = KFold(n_splits=3, random_state=1)
-        cv_start = time()
-        predictions = cross_val_predict(clf, data, labels, cv=kfold, n_jobs=-1)
-        cv_end = time()
-        print("Cross-Validation took " + str((cv_end - cv_start) / 60) + " minutes to complete\n")
-    else:
-        prediction_start = time()
+def evaluateModel(clf, data, labels, test_flag=False):
+    prediction_start = time()
+    if test_flag:
         predictions = clf.predict(data)
-        score = clf.score(data,labels)
-        prediction_end = time()
-        print("Prediction took " + str((prediction_end - prediction_start) / 60) + " minutes to complete\n")
-    print(score)
-    error = 1.0 - float(score)
-    # error = 1.0 - float(accuracy_score(labels, predictions))
+        print("Predictions:")
+        print(predictions)
+    score = clf.score(data,labels)
+    print("Accuracy: ", score)
+    prediction_end = time()
+    print("Prediction took " + str((prediction_end - prediction_start) / 60) + " minutes to complete\n")
     # print("Accuracy: " + str(accuracy_score(labels, predictions)))
     # print("Confusion Matrix:")
     # print(confusion_matrix(labels, predictions))
     # print("Classification Report:")
     # print(classification_report(labels, predictions))
-    return error
+    return score
 
 
-def createModel(data, labels, cv_flag=False):
-    errors = list()
+def createModel(data, labels):
     model = ChainCRF(n_states=3,n_features=int(len(columns)-4),directed=True)
-    clf = StructuredPerceptron(model=model,max_iter=10,verbose=False,batch=False,average=False)
+    clf = StructuredPerceptron(model=model,max_iter=20,verbose=False,batch=False,average=True)
     print("Structured Perceptron + Chain CRF")
-    if cv_flag:
-        print("Cross-Validation")
-        errors.append(evaluateModel(clf, data, labels, True))
-    else:
-        X_train, X_test, Y_train, Y_test = train_test_split(data, labels, test_size=0.3, random_state=1)
-        train_start = time()
-        clf.fit(X=X_train, Y=Y_train)
-        train_end = time()
-        print("Training took " + str((train_end - train_start) / 60) + " minutes to complete\n")
-        print("Results\n")
-        print("Train")
-        train_score = clf.score(X_train,Y_train)
-        print(train_score)
-        errors.append(1.0 - float(train_score))
-        #errors.append(evaluateModel(clf, X_train, Y_train))
-        print("Test")
-        print(clf.predict(X_test))
-        test_score = clf.score(X_test,Y_test)
-        print(test_score)
-        errors.append(1.0 - float(test_score))
-        #errors.append(evaluateModel(clf, X_test, Y_test))
-    #plt(clf)
-    return errors
+    train_start = time()
+    clf.fit(X=data, Y=labels)
+    train_end = time()
+    print("Training took " + str((train_end - train_start) / 60) + " minutes to complete\n")
+    return clf
 
 def main():
     start = time()
     inputfile = sys.argv[1]
-    print(inputfile)
-    data, labels = createMatrix(inputfile)
-    errors = createModel(data, labels, False)
-    print("\nTrain Error: " + str(errors[0]))
-    if len(errors) > 1:
-        print("Test Error: " + str(errors[1]))
+    print(sys.argv[0],inputfile)
+    train_accuracy = list()
+    test_accuracy = list()
+    num_of_runs = 20
+    for i in range(num_of_runs):
+        X_train, Y_train, X_test, Y_test = createMatrix(datafile=inputfile,seq_length=4,test_size=0.1)
+        model = createModel(X_train, Y_train)
+        print("\nTrain"+str(i)+"\n")
+        train_accuracy.append(evaluateModel(model, X_train, Y_train))
+        print("\nTest"+str(i)+"\n")
+        test_accuracy.append(evaluateModel(model, X_test, Y_test, test_flag=True))
+    print("\nResults\n")
+    print("Minimum Train Accuracy: " + str(np.min(train_accuracy)))
+    print("Minimum Test Accuracy: " + str(np.min(test_accuracy)))
+    print("Maximum Train Accuracy: " + str(np.max(train_accuracy)))
+    print("Maximum Test Accuracy: " + str(np.max(test_accuracy)))
+    print("Average Train Accuracy: " + str(np.mean(train_accuracy)))
+    print("Average Test Accuracy: " + str(np.mean(test_accuracy)))
     end = time()
     print("\nProcess took " + str((end - start) / 60) + " minutes to complete")
 
