@@ -61,7 +61,7 @@ def evaluateModel(clf, data, labels, test_flag=False):
 
 def createModel(data, labels):
     model = ChainCRF(n_states=3,n_features=int(len(columns)-5),directed=True)
-    clf = StructuredPerceptron(model=model,max_iter=100,verbose=False,batch=True,average=True)
+    clf = StructuredPerceptron(model=model,max_iter=500,verbose=False,batch=True,average=True)
     print("Structured Perceptron + Chain CRF")
     train_start = time()
     clf.fit(X=data, Y=labels)
@@ -88,7 +88,6 @@ def main():
         accuracy[team_name]['Train'] = evaluateModel(model, X_train, Y_train)
         print("\nTest "+team_name+"\n")
         accuracy[team_name]['Test'] = evaluateModel(model, X_test, Y_test, test_flag=True)
-        break
     print("\nResults\n")
     for team in accuracy.keys():
         print("\n"+team)
