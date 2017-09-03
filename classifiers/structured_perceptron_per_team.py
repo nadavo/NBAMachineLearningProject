@@ -90,6 +90,11 @@ def main():
             print(X_test)
             print(Y_test)
         accuracy[team_name] = dict()
+        num_classes_list = list()
+        for chain in Y_train:
+            for num in chain:
+                num_classes_list.append(num)
+        num_classes = len(np.unique(num_classes_list))
         models[team_name] = createModel(X_train, Y_train, num_classes)
         print("\nTrain "+team_name+"\n")
         accuracy[team_name]['Train'] = evaluateModel(models[team_name], X_train, Y_train)
