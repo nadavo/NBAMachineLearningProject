@@ -38,7 +38,18 @@ def createMatrix(datafile,seq_length,test_size):
             df_season = df_team[(df_team['Season']>=int(first_season+i))&(df_team['Season']<int(first_season+i+seq_length))]
             X, Y = df_season.iloc[:,3:-1].apply(pd.to_numeric), pd.to_numeric(df_season.iloc[:,-1],downcast='unsigned')
             X_chain = X.as_matrix()
-            X_chained.append(X_chain)
+            num_nodes = X_chain.shape[0]
+            items_list = list()
+            #[[0,1],[0,2],[0,3],[1,2],[1,3],[2,3]]
+            for i in range(num_nodes):
+                for j in range(i+1,num_nodes):
+                    items_list.append([i,j])
+            edges = list()
+            for item in items_list:
+                edges.append(np.array(item))
+            edges = np.array(edges)
+            tup = (X_chain,edges)
+            X_chained.append(tup)
             Y_chain = Y.as_matrix()
             Y_chained.append(Y_chain)
         train_test += 1
@@ -46,6 +57,11 @@ def createMatrix(datafile,seq_length,test_size):
     print("Number of training label chains: " + str(len(Y_train)))
     print("Number of test sample chains: " + str(len(X_test)))
     print("Number of test label chains: " + str(len(Y_test)))
+    # X_train = np.array(X_train)
+    # print(X_train[0])
+    # Y_train = np.array(Y_train)
+    # X_test = np.array(X_test)
+    # Y_test = np.array(Y_test)
     return X_train, Y_train, X_test, Y_test
 
 
@@ -68,9 +84,10 @@ def evaluateModel(clf, data, labels, test_flag=False):
 
 
 def createModel(data, labels):
-    model = ChainCRF(n_states=3,n_features=int(len(columns)-4),directed=True)
-    clf = StructuredPerceptron(model=model,max_iter=20,verbose=False,batch=False,average=True)
-    print("Structured Perceptron + Chain CRF")
+    #model = ChainCRF(n_states=3,n_features=int(len(columns)-4),directed=True)
+    model = GraphCRF(n_states=3,n_features=int(len(columns)-4),directed=True,inference_method='max-product')
+    clf = StructuredPerceptron(model=model,max_iter=10,verbose=False,batch=False,average=True)
+    print("Structured Perceptron + Graph CRF")
     train_start = time()
     clf.fit(X=data, Y=labels)
     train_end = time()
@@ -83,7 +100,7 @@ def main():
     print(sys.argv[0],inputfile)
     train_accuracy = list()
     test_accuracy = list()
-    num_of_runs = 20
+    num_of_runs = 30
     for i in range(num_of_runs):
         X_train, Y_train, X_test, Y_test = createMatrix(datafile=inputfile,seq_length=4,test_size=0.1)
         model = createModel(X_train, Y_train)

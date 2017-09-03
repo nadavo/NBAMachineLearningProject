@@ -20,6 +20,7 @@ def createMatrix(datafile,seq_length,test_size):
     df.to_csv('reduced.csv', index = False)
     teamIDs = list(df['TeamID'].unique())
     shuffled_teamIDs = sample(teamIDs,len(teamIDs))
+    sliding_window = int(seq_length/2)
     X_train = list()
     Y_train = list()
     X_test = list()
@@ -34,7 +35,7 @@ def createMatrix(datafile,seq_length,test_size):
         if train_test>=int(len(shuffled_teamIDs)*(1-test_size)):
             X_chained = X_test
             Y_chained = Y_test
-        for i in range(0,num_seasons,seq_length):
+        for i in range(0,num_seasons-sliding_window,sliding_window):
             df_season = df_team[(df_team['Season']>=int(first_season+i))&(df_team['Season']<int(first_season+i+seq_length))]
             X, Y = df_season.iloc[:,3:-1].apply(pd.to_numeric), pd.to_numeric(df_season.iloc[:,-1],downcast='unsigned')
             X_chain = X.as_matrix()
@@ -69,7 +70,7 @@ def evaluateModel(clf, data, labels, test_flag=False):
 
 def createModel(data, labels):
     model = ChainCRF(n_states=3,n_features=int(len(columns)-4),directed=True)
-    clf = StructuredPerceptron(model=model,max_iter=20,verbose=False,batch=False,average=True)
+    clf = StructuredPerceptron(model=model,max_iter=10,verbose=False,batch=False,average=True)
     print("Structured Perceptron + Chain CRF")
     train_start = time()
     clf.fit(X=data, Y=labels)
@@ -83,9 +84,9 @@ def main():
     print(sys.argv[0],inputfile)
     train_accuracy = list()
     test_accuracy = list()
-    num_of_runs = 20
+    num_of_runs = 10
     for i in range(num_of_runs):
-        X_train, Y_train, X_test, Y_test = createMatrix(datafile=inputfile,seq_length=4,test_size=0.1)
+        X_train, Y_train, X_test, Y_test = createMatrix(datafile=inputfile,seq_length=3,test_size=float(1/3))
         model = createModel(X_train, Y_train)
         print("\nTrain"+str(i)+"\n")
         train_accuracy.append(evaluateModel(model, X_train, Y_train))
