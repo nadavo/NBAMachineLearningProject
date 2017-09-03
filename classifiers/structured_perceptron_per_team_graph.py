@@ -19,17 +19,30 @@ columns = columns_reduced
 def createMatrix(datafile,seq_length,test_size):
     df_team = datafile
     test_size = test_size * (-1)
-    X_train = list()
-    Y_train = list()
+    X_chained = list()
+    Y_chained = list()
     first_season = int(df_team['Season'].min())
     num_seasons = df_team['Season'].nunique()
     for i in range(0,num_seasons,seq_length):
         df_season = df_team[(df_team['Season']>=int(first_season+i))&(df_team['Season']<int(first_season+i+seq_length))]
         X, Y = df_season.iloc[:,4:-1].apply(pd.to_numeric), pd.to_numeric(df_season.iloc[:,-1],downcast='integer')
         X_chain = X.as_matrix()
-        X_train.append(X_chain)
+        num_nodes = X_chain.shape[0]
+        items_list = list()
+        #[[0,1],[0,2],[0,3],[1,2],[1,3],[2,3]]
+        for i in range(num_nodes):
+            for j in range(i+1,num_nodes):
+                items_list.append([i,j])
+        edges = list()
+        for item in items_list:
+            edges.append(np.array(item))
+        edges = np.array(edges)
+        tup = (X_chain,edges)
+        X_chained.append(tup)
         Y_chain = Y.as_matrix()
-        Y_train.append(Y_chain)
+        Y_chained.append(Y_chain)
+    X_train = X_chained
+    Y_train = Y_chained
     X_test = X_train[test_size:]
     Y_test = Y_train[test_size:]
     X_train = X_train[:test_size]
@@ -59,9 +72,9 @@ def evaluateModel(clf, data, labels, test_flag=False):
     return score
 
 def createModel(data, labels, num_classes=3):
-    model = ChainCRF(n_states=num_classes,n_features=int(len(columns)-5),directed=True)
-    clf = StructuredPerceptron(model=model,max_iter=1000,verbose=False,batch=False,average=True)
-    print("Structured Perceptron + Chain CRF")
+    model = GraphCRF(n_states=num_classes,n_features=int(len(columns)-5),directed=True,inference_method='max-product')
+    clf = StructuredPerceptron(model=model,max_iter=30,verbose=False,batch=False,average=True)
+    print("Structured Perceptron + Graph CRF")
     train_start = time()
     clf.fit(X=data, Y=labels)
     train_end = time()
