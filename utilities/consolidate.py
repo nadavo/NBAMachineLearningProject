@@ -2,7 +2,7 @@ import sys
 
 input_dir = sys.argv[1]
 output_filename = sys.argv[2]
-num_seasons = int(sys.argv[3])
+num_seasons = sys.argv[3]
 
 output_lines = list()
 averages = list()
