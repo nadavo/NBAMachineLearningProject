@@ -32,7 +32,7 @@ for j in range(0, 31):
                 continue
             if row[1] in dicTeamID.keys():
                 teams.append((row[1], dicTeamID[row[1]]))
-                if 2000 + j < 2003 and row[1] == 'Charlotte Hornets':
+                if 1987 + j < 2003 and row[1] == 'Charlotte Hornets':
                     teams.remove((row[1], dicTeamID[row[1]]))
                     teams.append(('Charlotte Hornets', dicTeamID['New Orleans Pelicans']))
             else:
