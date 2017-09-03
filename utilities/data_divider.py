@@ -4,8 +4,8 @@ years = [1987,1994,2002]
 times = [0,1,2]
 
 
-file = pd.read_csv('31structured_next.csv')
 for time in times:
+    file = pd.read_csv('31structured_next.csv')
     #########################################
     ### divide by seasons and conference ####
     x = file
@@ -50,21 +50,21 @@ for time in times:
 
     ########################################################
     ### create binary data files for 18, 24, 31 seasons ####
-
+    q = [1987, 1994, 2000]
     binary = file
     for j, row in file.iterrows():
-        if row['Season'] < years[time]:
+        if row['Season'] < q[time]:
             binary = binary.drop(file.index[j])
+            continue
         if row['Standings_Bucket']==1:
-            binary = binary.set_value(index=j, col='Standings_Bucket', value=0)
+            binary.set_value(index=j, col='Standings_Bucket', value=0)
         if row['Standings_Bucket']==2:
-            print(time)
-            binary = binary.set_value(index=j, col='Standings_Bucket', value=1)
+            binary.set_value(index=j, col='Standings_Bucket', value=1)
         if row['Standings_Bucket_Next']==1:
-            binary = binary.set_value(index=j, col='Standings_Bucket_Next', value=0)
+            binary.set_value(index=j, col='Standings_Bucket_Next', value=0)
         if row['Standings_Bucket_Next']==2:
             binary = binary.set_value(index=j, col='Standings_Bucket_Next', value=1)
-            print(time)
 
-    name = int(2017-years[time])
+    name = int(2018-q[time])
+
     binary.to_csv(str(name)+'Binary.csv')
