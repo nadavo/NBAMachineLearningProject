@@ -7,8 +7,14 @@ import numpy as np
 from time import time
 import sys
 
+columns_original = ['TeamID','E/W','Conference Finalist','W/L','FG','FGA','3P','3PA','FT','FTA','ORB','DRB','AST','STL','BLK','TOV','PF','PTS','Pace','Attendance','Standings_Bucket','Standings_Bucket_Next']
+
+columns_reduced = ['TeamID', 'E/W', 'Conference Finalist', 'FG', 'FGA', '3P', '3PA', 'FT', 'FTA', 'ORB', 'DRB', 'AST', 'STL', 'BLK', 'TOV', 'PF', 'PTS', 'Pace', 'Attendance', 'Standings_Bucket','Standings_Bucket_Next']
+
+columns = ['Season', 'TeamID', 'E/W', 'Conference Finalist','PTS', '2PA', '3PA', 'AST', 'DRB', 'ORB', 'SRS', 'W/L', 'STL', 'BLK', 'Attendance', 'Pace', 'Standings_Bucket','Standings_Bucket_Next']
+
+
 def createMatrix(datafile):
-    columns = ['TeamID','E/W','Conference Finalist','W/L','FG','FGA','3P','3PA','FT','FTA','ORB','DRB','AST','STL','BLK','TOV','PF','PTS','Pace','Attendance','Standings_Bucket']
     df = pd.read_csv(datafile, header=0, sep=',', usecols=columns)
     df.to_csv('reduced.csv', index = False)
     X, Y = df.iloc[:,:-1], df.iloc[:,-1]
@@ -43,9 +49,9 @@ def evaluateModel(clf, data, labels, cv_flag=False):
 
 def createModel(data, labels, cv_flag=False):
     errors = list()
-    clf = SVC(kernel='rbf',class_weight='balanced',C=0.9,gamma=0.01)
-    C_range = np.logspace(-2, 10)
-    gamma_range = np.logspace(-2, 10)
+    clf = SVC(kernel='rbf',class_weight='balanced')
+    C_range = np.logspace(-1, 10)
+    gamma_range = np.logspace(-1, 1)
     param_grid = dict(gamma=gamma_range, C=C_range)
     grid = GridSearchCV(clf, param_grid=param_grid, cv=StratifiedKFold(n_splits=3, random_state=1), n_jobs=-1)
     grid.fit(data, labels)
