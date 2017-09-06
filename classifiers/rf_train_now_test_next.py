@@ -1,7 +1,7 @@
 from sklearn.model_selection import train_test_split, learning_curve, KFold, cross_val_score, cross_val_predict
 from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
 from sklearn.ensemble import RandomForestClassifier
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 from time import time
@@ -10,9 +10,9 @@ import sys
 #0.82
 columns_original = ['TeamID','E/W','Conference Finalist','W/L','FG','FGA','3P','3PA','FT','FTA','ORB','DRB','AST','STL','BLK','TOV','PF','PTS','Pace','Attendance']
 #0.79
-columns_reduced = ['TeamID', 'E/W', 'Conference Finalist', 'FG', 'FGA', '3P', '3PA', 'FT', 'FTA', 'ORB', 'DRB', 'AST', 'STL', 'BLK', 'TOV', 'PF', 'PTS', 'Pace', 'Attendance', 'Standings_Bucket']
+columns_reduced = ['TeamID', 'E/W', 'Conference Finalist', '2P', '2PA', '3P', '3PA', 'FT', 'FTA', 'ORB', 'DRB', 'AST', 'STL', 'BLK', 'TOV', 'PF', 'PTS', 'Pace', 'Attendance', 'Standings_Bucket', 'Standings_Bucket_Next']
 
-columns = columns_original
+columns = columns_reduced
 
 def createMatrix(datafile):
     df = pd.read_csv(datafile, header=0, sep=',', usecols=columns)
@@ -55,58 +55,57 @@ def evaluateModel(clf, data, labels, cv_flag=False):
     return error
 
 
-def createModel(data, labels, cv_flag=False):
-    errors = list()
+def createModel(data, labels, test_flag=False):
     clf = RandomForestClassifier(n_estimators=10, max_depth=None, min_samples_split=2, random_state=2,
                                  criterion='entropy')
     print("Random Forest")
-    if cv_flag:
-        print("Cross-Validation")
-        errors.append(evaluateModel(clf, data, labels, True))
-        plot_learning_curve(clf, "Learning Curves (Random Forest)", data, labels, (0.7, 1.01),cv=KFold(n_splits=3, random_state=1), n_jobs=-1)
+    if test_flag:
+        X_train, X_test, Y_train, Y_test = train_test_split(data, labels, test_size=0.33333333, random_state=1)
+        print("Training took " + str((train_end - train_start) / 60) + " minutes to complete\n")
+        print("Results\n")
+        print("Test")
+        error = evaluateModel(clf, X_test, Y_test))
     else:
-        X_train, X_test, Y_train, Y_test = train_test_split(data, labels, test_size=0.3, random_state=1)
+        X_train, X_test, Y_train, Y_test = train_test_split(data, labels, test_size=0.33333333, random_state=1)
         train_start = time()
         clf = clf.fit(X_train, Y_train)
         train_end = time()
         print("Training took " + str((train_end - train_start) / 60) + " minutes to complete\n")
         print("Results\n")
         print("Train")
-        errors.append(evaluateModel(clf, X_train, Y_train))
-        print("Test")
-        errors.append(evaluateModel(clf, X_test, Y_test))
-        plot_learning_curve(clf, "Learning Curves (Random Forest)", X_train, Y_train, (0.7, 1.01),cv=KFold(n_splits=3, random_state=1), n_jobs=-1)
-    plt.show()
-    return errors
+        error = evaluateModel(clf, X_train, Y_train))
+        #plot_learning_curve(clf, "Learning Curves (Random Forest)", X_train, Y_train, (0.7, 1.01),cv=KFold(n_splits=3, random_state=1), n_jobs=-1)
+    #plt.show()
+    return error
 
 
-def plot_learning_curve(estimator, title, X, y, ylim=None, cv=None, n_jobs=1, train_sizes=np.linspace(.1, 1.0, 5)):
-    plt.figure()
-    plt.title(title)
-    if ylim is not None:
-        plt.ylim(*ylim)
-    plt.xlabel("Training examples")
-    plt.ylabel("Score")
-    train_sizes, train_scores, test_scores = learning_curve(
-        estimator, X, y, cv=cv, n_jobs=n_jobs, train_sizes=train_sizes)
-    train_scores_mean = np.mean(train_scores, axis=1)
-    train_scores_std = np.std(train_scores, axis=1)
-    test_scores_mean = np.mean(test_scores, axis=1)
-    test_scores_std = np.std(test_scores, axis=1)
-    plt.grid()
-
-    plt.fill_between(train_sizes, train_scores_mean - train_scores_std,
-                     train_scores_mean + train_scores_std, alpha=0.1,
-                     color="r")
-    plt.fill_between(train_sizes, test_scores_mean - test_scores_std,
-                     test_scores_mean + test_scores_std, alpha=0.1, color="g")
-    plt.plot(train_sizes, train_scores_mean, 'o-', color="r",
-             label="Training score")
-    plt.plot(train_sizes, test_scores_mean, 'o-', color="g",
-             label="Cross-validation score")
-
-    plt.legend(loc="best")
-    return plt
+# def plot_learning_curve(estimator, title, X, y, ylim=None, cv=None, n_jobs=1, train_sizes=np.linspace(.1, 1.0, 5)):
+#     plt.figure()
+#     plt.title(title)
+#     if ylim is not None:
+#         plt.ylim(*ylim)
+#     plt.xlabel("Training examples")
+#     plt.ylabel("Score")
+#     train_sizes, train_scores, test_scores = learning_curve(
+#         estimator, X, y, cv=cv, n_jobs=n_jobs, train_sizes=train_sizes)
+#     train_scores_mean = np.mean(train_scores, axis=1)
+#     train_scores_std = np.std(train_scores, axis=1)
+#     test_scores_mean = np.mean(test_scores, axis=1)
+#     test_scores_std = np.std(test_scores, axis=1)
+#     plt.grid()
+#
+#     plt.fill_between(train_sizes, train_scores_mean - train_scores_std,
+#                      train_scores_mean + train_scores_std, alpha=0.1,
+#                      color="r")
+#     plt.fill_between(train_sizes, test_scores_mean - test_scores_std,
+#                      test_scores_mean + test_scores_std, alpha=0.1, color="g")
+#     plt.plot(train_sizes, train_scores_mean, 'o-', color="r",
+#              label="Training score")
+#     plt.plot(train_sizes, test_scores_mean, 'o-', color="g",
+#              label="Cross-validation score")
+#
+#     plt.legend(loc="best")
+#     return plt
 
 
 def main():
@@ -114,10 +113,10 @@ def main():
     inputfile = sys.argv[1]
     print(inputfile)
     data, labels = createMatrix(inputfile)
-    errors = createModel(data, labels, False)
-    print("\nTrain Error: " + str(errors[0]))
-    if len(errors) > 1:
-        print("Test Error: " + str(errors[1]))
+    train_error = createModel(data, labels, False)
+    test_error = createModel(data, labels, True)
+    print("\nTrain Error: " + str(train_error))
+    print("Test Error: " + str(test_error))
     end = time()
     print("\nProcess took " + str((end - start) / 60) + " minutes to complete")
 
