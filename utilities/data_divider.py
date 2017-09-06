@@ -1,30 +1,11 @@
 import csv
 import pandas as pd
-years = [1987,1994,2002]
+years = [1987,1997,2007]
 times = [0,1,2]
 
 
 for time in times:
     file = pd.read_csv('31structured_next.csv')
-    #########################################
-    ### divide by seasons and conference ####
-    x = file
-    y = file
-    for j, row in file.iterrows():
-        if row['Season'] > years[time]+16:
-            y = y.drop(file.index[j])
-            x = x.drop(file.index[j])
-            continue
-        else:
-            if row['E/W'] == 0:
-                y = y.drop(file.index[j])
-                continue
-            else:
-                x = x.drop(file.index[j])
-                continue
-    x.to_csv(str(years[time])+'East.csv', index=False)
-    y.to_csv(str(years[time])+'west.csv', index=False)
-
     #############################################
     ### divide by conference ####################
     east = file
@@ -43,7 +24,7 @@ for time in times:
 
     season = file
     for j, row in file.iterrows():
-        if row['Season'] > years[time]+16 or row['Season'] < years[time]:
+        if row['Season'] > years[time]+10 or row['Season'] < years[time]:
             season = season.drop(file.index[j])
 
     season.to_csv(str(years[time])+".csv", index=False)
