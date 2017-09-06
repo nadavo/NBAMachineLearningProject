@@ -1,5 +1,5 @@
 from sklearn.model_selection import train_test_split, learning_curve, StratifiedKFold, GridSearchCV, cross_val_predict
-from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
+from sklearn.metrics import accuracy_score, confusion_matrix, classification_report, make_scorer
 from sklearn.svm import SVC
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -13,6 +13,9 @@ columns_reduced = ['TeamID', 'E/W', 'Conference Finalist', 'FG', 'FGA', '3P', '3
 
 columns = ['Season', 'TeamID', 'E/W', 'Conference Finalist','PTS', '2PA', '3PA', 'AST', 'DRB', 'ORB', 'SRS', 'W/L', 'STL', 'BLK', 'Attendance', 'Pace', 'Standings_Bucket','Standings_Bucket_Next']
 
+def my_custom_loss_func(data, labels):
+    diff = int(sum(np.abs(data - labels)))
+    return diff
 
 def createMatrix(datafile):
     df = pd.read_csv(datafile, header=0, sep=',', usecols=columns)
@@ -49,6 +52,7 @@ def evaluateModel(clf, data, labels, cv_flag=False):
 
 def createModel(data, labels, cv_flag=False):
     errors = list()
+    loss = make_scorer(my_custom_loss_func, greater_is_better=False)
     clf = SVC(kernel='rbf',class_weight='balanced')
     C_range = np.logspace(-1, 10)
     gamma_range = np.logspace(-1, 1)
@@ -66,6 +70,7 @@ def createModel(data, labels, cv_flag=False):
         X_train, X_test, Y_train, Y_test = train_test_split(data, labels, test_size=0.333, random_state=1)
         train_start = time()
         clf = clf.fit(X_train, Y_train)
+        print('Loss - ', loss(clf, data, labels))
         train_end = time()
         print("Training took " + str((train_end - train_start) / 60) + " minutes to complete\n")
         print("Results\n")

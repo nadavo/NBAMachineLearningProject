@@ -1,5 +1,5 @@
 from sklearn.model_selection import train_test_split, learning_curve, KFold, cross_val_score, cross_val_predict
-from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
+from sklearn.metrics import accuracy_score, confusion_matrix, classification_report, make_scorer
 from sklearn.ensemble import RandomForestClassifier
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -7,12 +7,16 @@ import numpy as np
 from time import time
 import sys
 
-#0.82
-columns_original = ['TeamID','E/W','Conference Finalist','W/L','FG','FGA','3P','3PA','FT','FTA','ORB','DRB','AST','STL','BLK','TOV','PF','PTS','Pace','Attendance']
-#0.79
-columns_reduced = ['TeamID', 'E/W', 'Conference Finalist', 'FG', 'FGA', '3P', '3PA', 'FT', 'FTA', 'ORB', 'DRB', 'AST', 'STL', 'BLK', 'TOV', 'PF', 'PTS', 'Pace', 'Attendance', 'Standings_Bucket']
 
-columns = columns_original
+columns_original = ['TeamID','E/W','Conference Finalist','W/L','FG','FGA','3P','3PA','FT','FTA','ORB','DRB','AST','STL','BLK','TOV','PF','PTS','Pace','Attendance','Standings_Bucket','Standings_Bucket_Next']
+
+columns_reduced = ['TeamID', 'E/W', 'Conference Finalist', 'FG', 'FGA', '3P', '3PA', 'FT', 'FTA', 'ORB', 'DRB', 'AST', 'STL', 'BLK', 'TOV', 'PF', 'PTS', 'Pace', 'Attendance','Standings_Bucket','Standings_Bucket_Next']
+
+columns = ['Season', 'TeamID', 'E/W', 'Conference Finalist','PTS', '2PA', '3PA', 'AST', 'DRB', 'ORB', 'SRS', 'W/L', 'STL', 'BLK', 'Attendance', 'Pace', 'Standings_Bucket','Standings_Bucket_Next']
+
+def my_custom_loss_func(data, labels):
+    diff = int(sum(np.abs(data - labels)))
+    return diff
 
 def createMatrix(datafile):
     df = pd.read_csv(datafile, header=0, sep=',', usecols=columns)
@@ -55,8 +59,9 @@ def evaluateModel(clf, data, labels, cv_flag=False):
     return error
 
 
-def createModel(data, labels, cv_flag=False):
+def createModel(data, labels, cv_flag=True):
     errors = list()
+    loss = make_scorer(my_custom_loss_func, greater_is_better=False)
     clf = RandomForestClassifier(n_estimators=10, max_depth=None, min_samples_split=2, random_state=2,
                                  criterion='entropy')
     print("Random Forest")
@@ -65,9 +70,10 @@ def createModel(data, labels, cv_flag=False):
         errors.append(evaluateModel(clf, data, labels, True))
         plot_learning_curve(clf, "Learning Curves (Random Forest)", data, labels, (0.7, 1.01),cv=KFold(n_splits=3, random_state=1), n_jobs=-1)
     else:
-        X_train, X_test, Y_train, Y_test = train_test_split(data, labels, test_size=0.3, random_state=1)
+        X_train, X_test, Y_train, Y_test = train_test_split(data, labels, test_size=0.33333333, random_state=1)
         train_start = time()
         clf = clf.fit(X_train, Y_train)
+        print('Loss - ', loss(clf, data, labels))
         train_end = time()
         print("Training took " + str((train_end - train_start) / 60) + " minutes to complete\n")
         print("Results\n")

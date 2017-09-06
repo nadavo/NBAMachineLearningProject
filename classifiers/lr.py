@@ -1,5 +1,5 @@
 from sklearn.model_selection import train_test_split, learning_curve, StratifiedKFold, GridSearchCV, cross_val_predict
-from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
+from sklearn.metrics import accuracy_score, confusion_matrix, classification_report, make_scorer
 from sklearn.linear_model import LogisticRegression,LogisticRegressionCV
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -7,8 +7,17 @@ import numpy as np
 from time import time
 import sys
 
+columns_original = ['TeamID','E/W','Conference Finalist','W/L','FG','FGA','3P','3PA','FT','FTA','ORB','DRB','AST','STL','BLK','TOV','PF','PTS','Pace','Attendance','Standings_Bucket','Standings_Bucket_Next']
+
+columns_reduced = ['TeamID', 'E/W', 'Conference Finalist', 'FG', 'FGA', '3P', '3PA', 'FT', 'FTA', 'ORB', 'DRB', 'AST', 'STL', 'BLK', 'TOV', 'PF', 'PTS', 'Pace', 'Attendance', 'Standings_Bucket','Standings_Bucket_Next']
+
+columns = ['Season', 'TeamID', 'E/W', 'Conference Finalist','PTS', '2PA', '3PA', 'AST', 'DRB', 'ORB', 'SRS', 'W/L', 'STL', 'BLK', 'Attendance', 'Pace', 'Standings_Bucket','Standings_Bucket_Next']
+
+def my_custom_loss_func(data, labels):
+    diff = int(sum(np.abs(data - labels)))
+    return diff
+
 def createMatrix(datafile):
-    columns = ['Season','TeamID','E/W','Conference Finalist','W/L','FG','FGA','3P','3PA','FT','FTA','ORB','DRB','AST','STL','BLK','TOV','PF','PTS','Age','MOV','Pace','eFG%','Attendance','Standings_Bucket']
     df = pd.read_csv(datafile, header=0, sep=',', usecols=columns)
     df.to_csv('reduced.csv', index = False)
     X, Y = df.iloc[:,:-1], df.iloc[:,-1]
@@ -43,6 +52,7 @@ def evaluateModel(clf, data, labels, cv_flag=False):
 
 def createModel(data, labels, cv_flag=False):
     errors = list()
+    loss = make_scorer(my_custom_loss_func, greater_is_better=False)
     print("Logistic Regression")
     if cv_flag:
         print("Cross-Validation")
@@ -54,6 +64,7 @@ def createModel(data, labels, cv_flag=False):
         train_start = time()
         clf = LogisticRegression(max_iter=1000000,multi_class='multinomial', class_weight='balanced', C=1,solver='sag',random_state=1)
         clf = clf.fit(X_train, Y_train)
+        print('Loss - ', loss(clf, data, labels))
         train_end = time()
         print("Training took " + str((train_end - train_start) / 60) + " minutes to complete\n")
         print("Results\n")
