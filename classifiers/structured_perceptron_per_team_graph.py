@@ -32,7 +32,20 @@ def createMatrix(datafile,seq_length,test_size):
         df_season = df_team[(df_team['Season']>=int(first_season+i))&(df_team['Season']<int(first_season+i+seq_length))]
         X, Y = df_season.iloc[:,4:-1].apply(pd.to_numeric), pd.to_numeric(df_season.iloc[:,-1],downcast='integer')
         X_chain = X.as_matrix()
-        X_train.append(X_chain)
+        num_nodes = X_chain.shape[0]
+        items_list = list()
+        #[[0,1],[0,2],[0,3],[1,2],[1,3],[2,3]]
+        for i in range(num_nodes):
+            for j in range(i+1,num_nodes):
+                items_list.append([i,j])
+        edges = list()
+        for item in items_list:
+            edges.append(np.array(item))
+        if len(edges)<1:
+            edges.append(np.array([0,0]))
+        edges = np.array(edges)
+        tup = (X_chain,edges)
+        X_train.append(tup)
         Y_chain = Y.as_matrix()
         Y_train.append(Y_chain)
     X_test = X_train[test_size:]
@@ -88,9 +101,9 @@ def printWeights(weights):
     print(str(i),"Feautre Weights")
 
 def createModel(data, labels, num_classes=2):
-    model = ChainCRF(n_states=num_classes,n_features=int(len(columns)-5),directed=True)
-    clf = StructuredPerceptron(model=model,max_iter=200,verbose=False,batch=False,average=True)
-    print("Structured Perceptron + Chain CRF")
+    model = GraphCRF(n_states=num_classes,n_features=int(len(columns)-5),directed=True,inference_method='max-product')
+    clf = StructuredPerceptron(model=model,max_iter=2,verbose=False,batch=False,average=True)
+    print("Structured Perceptron + Graph CRF")
     train_start = time()
     clf.fit(X=data, Y=labels)
     train_end = time()
@@ -111,7 +124,9 @@ def main():
         num_classes = df_team[selected_label].nunique()
         team_name = str(team) + " -> " + str(df_team['Team'].unique()[0])
         print("\n"+team_name+"\n")
-        X_train, Y_train, X_test, Y_test = createMatrix(datafile=df_team,seq_length=3,test_size=3)
+        X_train, Y_train, X_test, Y_test = createMatrix(datafile=df_team,seq_length=4,test_size=3)
+        if team==4 or team==19:
+            continue
         # if team==19 or team==10 or team==13 or team==4 or team==7:
         #     print(num_classes)
         #     print(X_train)

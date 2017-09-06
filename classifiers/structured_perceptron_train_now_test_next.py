@@ -12,13 +12,11 @@ columns_original = ['Season','TeamID','E/W','Conference Finalist','W/L','FG','FG
 
 columns_reduced_next = ['Season','TeamID','E/W','Conference Finalist','W/L','3PA','2PA','ORB','DRB','AST','STL','BLK','PTS' ,'Pace' ,'Standings_Bucket','Standings_Bucket_Next']
 
-columns_reduced = ['Season','TeamID','E/W','Conference Finalist','W/L','3PA','2PA','ORB','DRB','AST','STL','BLK','PTS','Pace','Standings_Bucket']
-
 columns_best = ['Season','TeamID','E/W','Conference Finalist','W/L','3PA','2PA','ORB','DRB','BLK','Standings_Bucket']
 
-columns = columns_reduced
+columns = columns_reduced_next
 
-columns_reduced_print = columns[3:-1]
+columns_reduced_print = columns[3:-2]
 labels_print = ['0','1','2']
 
 def createMatrix(datafile,seq_length,test_size):
@@ -33,6 +31,7 @@ def createMatrix(datafile,seq_length,test_size):
     X_chained = X_train
     Y_chained = Y_train
     train_test = 0
+    label_index = -2
     for team in shuffled_teamIDs:
         df_team = df[df['TeamID']==team]
         first_season = int(df_team['Season'].min())
@@ -40,9 +39,11 @@ def createMatrix(datafile,seq_length,test_size):
         if train_test>=int(len(shuffled_teamIDs)*(1-test_size)):
             X_chained = X_test
             Y_chained = Y_test
+            df_team = df_team.drop('Standings_Bucket', 1)
+            label_index = -1
         for i in range(0,num_seasons,seq_length):
             df_season = df_team[(df_team['Season']>=int(first_season+i))&(df_team['Season']<int(first_season+i+seq_length))]
-            X, Y = df_season.iloc[:,3:-1].apply(pd.to_numeric), pd.to_numeric(df_season.iloc[:,-1],downcast='unsigned')
+            X, Y = df_season.iloc[:,3:label_index].apply(pd.to_numeric), pd.to_numeric(df_season.iloc[:,label_index],downcast='unsigned')
             X_chain = X.as_matrix()
             X_chained.append(X_chain)
             Y_chain = Y.as_matrix()
@@ -84,17 +85,6 @@ def evaluateModel(clf, data, labels, test_flag=False, score_override=False):
     # print(classification_report(labels, predictions))
     return score
 
-
-def createModel(data, labels):
-    model = ChainCRF(n_states=3,n_features=int(len(columns)-4),directed=True)
-    clf = StructuredPerceptron(model=model,max_iter=30,verbose=False,batch=False,average=True)
-    print("Structured Perceptron + Chain CRF")
-    train_start = time()
-    clf.fit(X=data, Y=labels)
-    train_end = time()
-    print("Training took " + str((train_end - train_start) / 60) + " minutes to complete\n")
-    return clf
-
 def printAveragedWeights(weights):
     avg_weights = list()
     for index in range(len(weights[0])):
@@ -113,6 +103,17 @@ def printAveragedWeights(weights):
             print(label_i,label_j,str(avg_weights[i]))
             i+=1
     print(str(i),"Feautre Weights")
+
+
+def createModel(data, labels):
+    model = ChainCRF(n_states=3,n_features=int(len(columns)-5),directed=True)
+    clf = StructuredPerceptron(model=model,max_iter=100,verbose=False,batch=False,average=True)
+    print("Structured Perceptron + Chain CRF")
+    train_start = time()
+    clf.fit(X=data, Y=labels)
+    train_end = time()
+    print("Training took " + str((train_end - train_start) / 60) + " minutes to complete\n")
+    return clf
 
 def main():
     start = time()
