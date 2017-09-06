@@ -10,12 +10,13 @@ import sys
 
 columns_original = ['Season','TeamID','E/W','Conference Finalist','W/L','FG','FGA','3P','3PA','FT','FTA','ORB','DRB','AST','STL','BLK','TOV','PF','PTS','Pace','Attendance', 'Standings_Bucket', "(0, 0)", "(0, 1)", "(0, 2)","(1, 0)","(1, 1)","(1, 2)","(2, 0)","(2, 1)","(2, 2)","(0, 0, 0)","(0, 0, 1)","(0, 0, 2)","(0, 1, 0)","(0, 1, 1)","(0, 1, 2)","(0, 2, 0)","(0, 2, 1)","(0, 2, 2)","(1, 0, 0)","(1, 0, 1)","(1, 0, 2)","(1, 1, 0)","(1, 1, 1)","(1, 1, 2)","(1, 2, 0)","(1, 2, 1)","(1, 2, 2)","(2, 0, 0)","(2, 0, 1)","(2, 0, 2)","(2, 1, 0)","(2, 1, 1)","(2, 1, 2)","(2, 2, 0)","(2, 2, 1)","(2, 2, 2)", 'Standings_Bucket_Next']
 
-#0.6 with 18 seasons regular chain
 columns_reduced_next = ['Season','TeamID','E/W','Conference Finalist','W/L','3PA','2PA','ORB','DRB','AST','STL','BLK','PTS' ,'Pace' ,'Standings_Bucket','Standings_Bucket_Next']
 
 columns_reduced = ['Season','TeamID','E/W','Conference Finalist','W/L','3PA','2PA','ORB','DRB','AST','STL','BLK','PTS','Pace','Standings_Bucket']
 
-columns = columns_reduced_next
+columns_best = ['Season','TeamID','E/W','Conference Finalist','W/L','3PA','2PA','ORB','DRB','BLK','Standings_Bucket']
+
+columns = columns_reduced
 
 columns_reduced_print = columns[3:-1]
 labels_print = ['0','1','2']
@@ -62,12 +63,15 @@ def evaluateModel(clf, data, labels, test_flag=False, score_override=False):
         print(predictions)
     if score_override:
         score = 0
+        num_test = 0
         for seq in range(len(labels)):
             diff = list()
             for num in range(len(labels[seq])):
                 diff.append(np.abs(predictions[seq][num] - labels[seq][num]))
+                num_test += 1
             score += int(sum(diff))
-        print("Score: ", score)
+        score = float(score)/num_test
+        print("Averaged Test Score: ", str(score))
     else:
         score = clf.score(data,labels)
         print("Accuracy: ", score)
@@ -83,7 +87,7 @@ def evaluateModel(clf, data, labels, test_flag=False, score_override=False):
 
 def createModel(data, labels):
     model = ChainCRF(n_states=3,n_features=int(len(columns)-4),directed=True)
-    clf = StructuredPerceptron(model=model,max_iter=10,verbose=False,batch=False,average=True)
+    clf = StructuredPerceptron(model=model,max_iter=30,verbose=False,batch=False,average=True)
     print("Structured Perceptron + Chain CRF")
     train_start = time()
     clf.fit(X=data, Y=labels)
@@ -120,7 +124,7 @@ def main():
     scores = list()
     num_of_runs = 30
     for i in range(num_of_runs):
-        X_train, Y_train, X_test, Y_test = createMatrix(datafile=inputfile,seq_length=3,test_size=0.3333333)
+        X_train, Y_train, X_test, Y_test = createMatrix(datafile=inputfile,seq_length=4,test_size=0.3333333)
         model = createModel(X_train, Y_train)
         weights.append(tuple(model.w))
         print("\nModel "+str(i)+" Weights:\n")
